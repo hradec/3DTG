@@ -7,7 +7,11 @@
 /3dtile-viewer/node_modules
 /.idea
 .done
+*.o
 mesh-splitter/*.abc
 mesh-splitter/*.mtl
 mesh-splitter/*.obj
+mesh-splitter/*.gltf
+mesh-splitter/*.glb
+mesh-splitter/dependencies/installed
 
