@@ -409,6 +409,7 @@ void MeshPrimitive2GLTF( MeshPrimitivePtr scene )
     // scene->mRootNode->mMeshes = new unsigned [] { 0 };
     // scene->mMetaData = new aiMetadata(); // workaround, issue #3781
 
+#if 0
     // create vertices and faces, then pack into an aiMesh
     aiVector3D *vertices = new aiVector3D [] {          // deleted: mesh.h:758
         { -1, -1, 0 },
@@ -434,7 +435,7 @@ void MeshPrimitive2GLTF( MeshPrimitivePtr scene )
 
     // a valid material is needed, even if its empty
     aiMaterial *material = new aiMaterial();            // deleted: Version.cpp:155
-    // ???? How to add texture? 
+    // ???? How to add texture?
 
     // a root node with the mesh list is needed; if you have multiple meshes, this must match.
     aiNode *root = new aiNode();                        // deleted: Version.cpp:143
@@ -459,7 +460,7 @@ void MeshPrimitive2GLTF( MeshPrimitivePtr scene )
 
     // deleting the scene will also take care of the vertices, faces, meshes, materials, nodes, etc.
     delete out;
-
+#endif
 }
 
 
