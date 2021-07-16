@@ -1,0 +1,5 @@
+libs/libIECoreGL.so filter=lfs diff=lfs merge=lfs -text
+libs/libIECoreImage.so filter=lfs diff=lfs merge=lfs -text
+libs/libIECoreScene.so filter=lfs diff=lfs merge=lfs -text
+libs/libIECore.so filter=lfs diff=lfs merge=lfs -text
+libs/libIECoreAlembic.so filter=lfs diff=lfs merge=lfs -text
