@@ -177,7 +177,12 @@ export-isolated-uv-textured: src/export-isolated-uv-textured.o
 	${CXX} -c ${CXXFLAGS} $< -o $@
 
 _test: ${all_docker}
-	./${BIN} tests/2_spheres_test_splitting_texture_map_by_uv*.obj
+	for each in ${BIN} ; do \
+		python3 -c "print('='*80)" ;\
+		echo "Testing $$each" ;\
+		python3 -c "print('='*80)" ;\
+	 	./$$each ./tests/2_spheres_test_splitting_texture_map_by_uv.obj ;\
+	done
 
 
 # ======================================================================================
@@ -202,6 +207,15 @@ test: docker
 		-v $$(pwd):/work_dev/ \
 		-v /atomo/pipeline/libs/:/atomo/pipeline/libs/ \
 	ubuntu_dev /bin/sh -c "cd /work_dev/; make _test"
+
+run: docker
+	docker run -ti --rm \
+		-u $$(id -u ${USER}):$$(id -g ${USER}) \
+		-v /etc/passwd:/etc/passwd \
+		-v /etc/group:/etc/group \
+		-v $$(pwd):/work_dev/ \
+		-v /atomo/pipeline/libs/:/atomo/pipeline/libs/ \
+	ubuntu_dev /bin/sh -c "cd /work_dev/;bash"
 
 help:
 	@echo ""
