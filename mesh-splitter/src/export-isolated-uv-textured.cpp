@@ -21,6 +21,7 @@ string mtl2texture(string mtl_file){
     ifstream file(mtl_file);
     for( string line; getline( file, line ); ){
         if(line.find("map_Kd") != string::npos){
+            boost::trim(line);
             boost::erase_all(line, "map_Kd ");
             if( ! exists(line) ){
                 line = dirname(mtl_file)+"/"+line;
@@ -42,8 +43,9 @@ int main(int argc, char **argv)
 
         // read obj mesh
         cout << "Loading mesh " << obj << "\n";
-        ReaderPtr                 meshReader    = Reader::create( obj );
-        MeshPrimitivePtr          mesh          = MeshAlgo::triangulate( meshReader->read().get() );
+        // ReaderPtr                 meshReader    = Reader::create( obj );
+        OBJReader2                meshReader( obj );
+        MeshPrimitivePtr          mesh          = MeshAlgo::triangulate( meshReader.read().get() );
 
         // we need to convert float s/t primvars to V2f(UV) primvar,
         // so MeshPrimitiveEvaluator() can work
@@ -53,6 +55,8 @@ int main(int argc, char **argv)
         uvs->setInterpretation( GeometricData::UV );
         std::vector<Imath::V2f> &uvValues = uvs->writable();
 
+// #define ST
+#ifdef ST
         // acces s and t primvars
         FloatVectorData *s = mesh->variableData<FloatVectorData>( "s", PrimitiveVariable::Interpolation::FaceVarying );
         FloatVectorData *t = mesh->variableData<FloatVectorData>( "t", PrimitiveVariable::Interpolation::FaceVarying );
@@ -68,6 +72,9 @@ int main(int argc, char **argv)
         // and finally we create the new uv primvar!
         // uv is interpolated as FaceVarying
         mesh->variables["uv"] = PrimitiveVariable(PrimitiveVariable::Interpolation::FaceVarying, uvs);
+#else
+        const std::vector<Imath::V2f> &mesh_uvs = mesh->expandedVariableData<V2fVectorData>( "uv", PrimitiveVariable::FaceVarying )->readable();
+#endif
 
         // now we can finally create the MeshPrimitiveEvaluator
         MeshPrimitiveEvaluatorPtr meshEval      = new MeshPrimitiveEvaluator( mesh );

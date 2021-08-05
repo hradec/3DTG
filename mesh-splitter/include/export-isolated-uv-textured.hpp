@@ -12,7 +12,8 @@
 #include <sstream>
 #include <string>
 
-
+#include "include/OBJReader2.h"
+#include "include/OBJReader2_code.h"
 
 using namespace std;
 using namespace IECore;
