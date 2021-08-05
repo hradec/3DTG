@@ -6,7 +6,6 @@
 /construkted-tiler/test/lod_test.01_tileset
 /3dtile-viewer/node_modules
 /.idea
-.done
 *.o
 mesh-splitter/*.abc
 mesh-splitter/*.mtl
