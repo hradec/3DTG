@@ -13,4 +13,5 @@ mesh-splitter/*.obj
 mesh-splitter/*.gltf
 mesh-splitter/*.glb
 mesh-splitter/dependencies/installed
+mesh-splitter/3dtg-objs
 

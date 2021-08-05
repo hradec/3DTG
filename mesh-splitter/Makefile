@@ -6,20 +6,21 @@ PIPE_LIBS_ROOT=/atomo/pipeline/libs/linux/x86_64/pipevfx.5.0.0
 CORTEX_VERSION=10.0.0.a82
 BOOST_VERSION=1.61.0
 ALEMBIC_VERSION=1.7.1
-GCC_VERSION=$(shell grep gcc ${PIPE_LIBS_ROOT}/cortex/${CORTEX_VERSION}/.build.noBaseLib-boost.${BOOST_VERSION}.done.depend | awk -F'/' '{print $$(NF)}' | sort -V | tail -1)
-ILMBASE_VERSION=$(shell grep ilmbase ${PIPE_LIBS_ROOT}/cortex/${CORTEX_VERSION}/.build.noBaseLib-boost.${BOOST_VERSION}.done.depend | awk -F'/' '{print $$(NF)}' | sort -V | tail -1)
-OPENEXR_VERSION=$(shell grep openexr ${PIPE_LIBS_ROOT}/cortex/${CORTEX_VERSION}/.build.noBaseLib-boost.${BOOST_VERSION}.done.depend | awk -F'/' '{print $$(NF)}' | sort -V | tail -1)
-TBB_VERSION=$(shell grep tbb ${PIPE_LIBS_ROOT}/cortex/${CORTEX_VERSION}/.build.noBaseLib-boost.${BOOST_VERSION}.done.depend | awk -F'/' '{print $$(NF)}' | sort -V | tail -1)
-BLOSC_VERSION=$(shell grep blosc ${PIPE_LIBS_ROOT}/cortex/${CORTEX_VERSION}/.build.noBaseLib-boost.${BOOST_VERSION}.done.depend | awk -F'/' '{print $$(NF)}' | sort -V | tail -1)
-FREETYPE_VERSION=$(shell grep freetype ${PIPE_LIBS_ROOT}/cortex/${CORTEX_VERSION}/.build.noBaseLib-boost.${BOOST_VERSION}.done.depend | awk -F'/' '{print $$(NF)}' | sort -V | tail -1)
-ALEMBIC_VERSION=$(shell grep alembic  ${PIPE_LIBS_ROOT}/cortex/${CORTEX_VERSION}/.build.noBaseLib-boost.${BOOST_VERSION}.done.depend | awk -F'/' '{print $$(NF)}' | sort -V | tail -1)
-MPFR_VERSION=$(shell grep mpfr ${PIPE_LIBS_ROOT}/gcc/${GCC_VERSION}/.build.noBaseLib.done.depend | awk -F'/' '{print $$(NF)}' | sort -V | tail -1)
-PYTHON_VERSION=$(shell grep python ${PIPE_LIBS_ROOT}/cortex/${CORTEX_VERSION}/.build.noBaseLib-boost.${BOOST_VERSION}.done.depend | awk -F'/' '{print $$(NF)}' | sort -V | tail -1)
+GCC_VERSION=$(shell grep gcc ${PIPE_LIBS_ROOT}/cortex/${CORTEX_VERSION}/.build.noBaseLib-boost.${BOOST_VERSION}.done.depend 2>/dev/null | awk -F'/' '{print $$(NF)}' | sort -V | tail -1)
+ILMBASE_VERSION=$(shell grep ilmbase ${PIPE_LIBS_ROOT}/cortex/${CORTEX_VERSION}/.build.noBaseLib-boost.${BOOST_VERSION}.done.depend 2>/dev/null | awk -F'/' '{print $$(NF)}' | sort -V | tail -1)
+OPENEXR_VERSION=$(shell grep openexr ${PIPE_LIBS_ROOT}/cortex/${CORTEX_VERSION}/.build.noBaseLib-boost.${BOOST_VERSION}.done.depend 2>/dev/null | awk -F'/' '{print $$(NF)}' | sort -V | tail -1)
+TBB_VERSION=$(shell grep tbb ${PIPE_LIBS_ROOT}/cortex/${CORTEX_VERSION}/.build.noBaseLib-boost.${BOOST_VERSION}.done.depend 2>/dev/null | awk -F'/' '{print $$(NF)}' | sort -V | tail -1)
+BLOSC_VERSION=$(shell grep blosc ${PIPE_LIBS_ROOT}/cortex/${CORTEX_VERSION}/.build.noBaseLib-boost.${BOOST_VERSION}.done.depend 2>/dev/null | awk -F'/' '{print $$(NF)}' | sort -V | tail -1)
+FREETYPE_VERSION=$(shell grep freetype ${PIPE_LIBS_ROOT}/cortex/${CORTEX_VERSION}/.build.noBaseLib-boost.${BOOST_VERSION}.done.depend 2>/dev/null | awk -F'/' '{print $$(NF)}' | sort -V | tail -1)
+ALEMBIC_VERSION=$(shell grep alembic  ${PIPE_LIBS_ROOT}/cortex/${CORTEX_VERSION}/.build.noBaseLib-boost.${BOOST_VERSION}.done.depend 2>/dev/null | awk -F'/' '{print $$(NF)}' | sort -V | tail -1)
+MPFR_VERSION=$(shell grep mpfr ${PIPE_LIBS_ROOT}/gcc/${GCC_VERSION}/.build.noBaseLib.done.depend 2>/dev/null | awk -F'/' '{print $$(NF)}' | sort -V | tail -1)
+PYTHON_VERSION=$(shell grep python ${PIPE_LIBS_ROOT}/cortex/${CORTEX_VERSION}/.build.noBaseLib-boost.${BOOST_VERSION}.done.depend 2>/dev/null | awk -F'/' '{print $$(NF)}' | sort -V | tail -1)
 PYTHON_VERSION_MAJOR=$(shell echo ${PYTHON_VERSION} | awk -F'.' '{print $$1"."$$2}')
 
 # gcc
 ROOT_CXX_ORIG	:= ${PIPE_LIBS_ROOT}/gcc/${GCC_VERSION}
-ROOT_CXX		:= ./libs/gcc/
+GCC_VERSION		:= ${shell ls ./libs/gcc/}
+ROOT_CXX		:= ./libs/gcc/${GCC_VERSION}/
 CXX 	  		:= ${ROOT_CXX}/bin/g++
 CXXFLAGS  		:= -Wno-deprecated -pipe -DBOOST_DISABLE_ASSERTS -fpermissive
 CXXFLAGS		+= -ggdb -DDEBUG
@@ -154,7 +155,7 @@ libs/.gcc_done:
 	error() { echo -e "\n\nERROR: Can't copy gcc to libs/gcc!!\n\n" && exit -1 ;} ; \
 	mkdir -p ./libs/gcc/ ; \
 	echo "Copying gcc" ; \
-	rsync -avpP ${ROOT_CXX_ORIG}/ ./libs/gcc/ > /dev/null\
+	cp -Lrfn ${ROOT_CXX_ORIG}/ ./libs/gcc/ > /dev/null\
 		&& touch libs/.gcc_done \
 		|| error
 

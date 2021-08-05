@@ -132,11 +132,11 @@ void splitMesh( MeshPrimitivePtr mesh, vector<MeshPrimitivePtr> &result, vector<
     // create access variables for input mesh vertex, face and uv data
     const std::vector<int> &vertexIds = mesh->vertexIds()->readable();
     const std::vector<int> &verticesPerFace = mesh->verticesPerFace()->readable();
-    // const vector<Imath::V2f> &mesh_uvs = runTimeCast<V2fVectorData>( mesh->variables["uv"].data.get() )->readable();
-    const std::vector<Imath::V2f> &mesh_uvs = mesh->expandedVariableData<V2fVectorData>( "uv", PrimitiveVariable::FaceVarying )->readable();
     const std::vector<Imath::V3f> &N  = mesh->expandedVariableData< V3fVectorData >( "N", PrimitiveVariable::FaceVarying )->readable();
     const vector<int> &mesh_uvs_indices = mesh->variables["uv"].indices->readable();
-    // const std::vector<Imath::V2f> &uv = mesh->variableData< V2fVectorData >( "uv", PrimitiveVariable::Interpolation::FaceVarying )->readable();
+    const std::vector<Imath::V2f> &mesh_uvs = mesh->expandedVariableData<V2fVectorData>( "uv", PrimitiveVariable::FaceVarying )->readable();
+    // const vector<Imath::V2f> &mesh_uvs = runTimeCast<V2fVectorData>( mesh->variables["uv"].data.get() )->readable();
+    // const std::vector<Imath::V2f> &mesh_uvs = mesh->variableData< V2fVectorData >( "uv", PrimitiveVariable::Interpolation::FaceVarying )->readable();
 
     // Splits the box into two across the major axis, if we don't specify an axis.
     Imath::Box3f halfBbox[2];
@@ -155,6 +155,8 @@ void splitMesh( MeshPrimitivePtr mesh, vector<MeshPrimitivePtr> &result, vector<
     cout << "uv's size:" << mesh_uvs.size() << " " << mesh_uvs_indices.size() <<  "\n" ;
     cout << "face vertex id size:" << vertexIds.size() << "\n";
     cout << "N size:" << N.size() << "\n" ;
+    cout << ">>>" << mesh_uvs_indices[10] << "\n" ;
+    cout << ">>>" << mesh->expandedVariableData<V2fVectorData>( "uv", PrimitiveVariable::FaceVarying )->readable()[10] << "\n" ;
     cout << "\n";
 #endif
 

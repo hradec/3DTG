@@ -145,8 +145,8 @@ ObjectPtr OBJReader2::doOperation(const CompoundObject * operands)
     if( uvid->readable().size() )
 	{
 		// mesh->variables.insert(PrimitiveVariableMap::value_type("uv", PrimitiveVariable( PrimitiveVariable::FaceVarying, uv)));
-        cout << uvid->readable().size() << endl;
-        cout << uvids->readable().size() << endl;
+        cout << "uvid:  " << uvid->readable().size() << endl;
+        cout << "uvids: " << uvids->readable().size() << endl;
 		mesh->variables.insert(PrimitiveVariableMap::value_type("uv", PrimitiveVariable( PrimitiveVariable::FaceVarying, uvid, uvids)));
 
         if( ! normals->readable().size() )
