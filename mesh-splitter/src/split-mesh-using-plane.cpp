@@ -133,7 +133,7 @@ void splitMesh( MeshPrimitivePtr mesh, vector<MeshPrimitivePtr> &result, vector<
     const std::vector<int> &vertexIds = mesh->vertexIds()->readable();
     const std::vector<int> &verticesPerFace = mesh->verticesPerFace()->readable();
     const std::vector<Imath::V3f> &N  = mesh->expandedVariableData< V3fVectorData >( "N", PrimitiveVariable::FaceVarying )->readable();
-    const vector<int> &mesh_uvs_indices = mesh->variables["uv"].indices->readable();
+    // const vector<int> &mesh_uvs_indices = mesh->variables["uv"].indices->readable();
     const std::vector<Imath::V2f> &mesh_uvs = mesh->expandedVariableData<V2fVectorData>( "uv", PrimitiveVariable::FaceVarying )->readable();
     // const vector<Imath::V2f> &mesh_uvs = runTimeCast<V2fVectorData>( mesh->variables["uv"].data.get() )->readable();
     // const std::vector<Imath::V2f> &mesh_uvs = mesh->variableData< V2fVectorData >( "uv", PrimitiveVariable::Interpolation::FaceVarying )->readable();
@@ -142,23 +142,21 @@ void splitMesh( MeshPrimitivePtr mesh, vector<MeshPrimitivePtr> &result, vector<
     Imath::Box3f halfBbox[2];
     boxSplit( mesh->bound(), halfBbox[0], halfBbox[1] );
 
-#ifdef DEBUG
     cout << "bbox half low: ";
     cout << halfBbox[0].min << " | ";
     cout << halfBbox[0].max << "\n";
     cout << "bbox half high: ";
     cout << halfBbox[1].min << " | ";
     cout << halfBbox[1].max << "\n";
-    cout << "\n";
     cout << "P size:" << P.size() << "\n" ;
     cout << "vertex per face size:" << verticesPerFace.size() << "\n" ;
-    cout << "uv's size:" << mesh_uvs.size() << " " << mesh_uvs_indices.size() <<  "\n" ;
+    // cout << "uv's size:" << mesh_uvs.size() << " " << mesh_uvs_indices.size() <<  "\n" ;
     cout << "face vertex id size:" << vertexIds.size() << "\n";
     cout << "N size:" << N.size() << "\n" ;
-    cout << ">>>" << mesh_uvs_indices[10] << "\n" ;
-    cout << ">>>" << mesh->expandedVariableData<V2fVectorData>( "uv", PrimitiveVariable::FaceVarying )->readable()[10] << "\n" ;
+    // cout << ">>>" << mesh_uvs_indices[10] << "\n" ;
+    // cout << ">>>" << N[1] << "\n" ;
+    // cout << ">>>" << mesh_uvs[10] << "\n" ;
     cout << "\n";
-#endif
 
     // vector<MeshPrimitivePtr> result;
     for( char half=0; half < 2 ; half++ ){
@@ -347,17 +345,18 @@ void splitMesh( MeshPrimitivePtr mesh, vector<MeshPrimitivePtr> &result, vector<
 
             }else{
                 // face is full inside the bbox
-                cout << mesh_uvs[ 0 ] << "\n\n";
+                // cout << mesh_uvs[ 0 ] << "\n\n";
                 vPerFace.push_back( verticesPerFace[f] );
                 for( char v=0 ; v<verticesPerFace[f] ; v++){
                     long oldMeshFaceVertexID = faces_vindex[f]+v ;
-                    cout << oldMeshFaceVertexID <<"\n"<< mesh_uvs[ oldMeshFaceVertexID ] << "\n\n";
+                    // cout << oldMeshFaceVertexID <<"\n"<< mesh_uvs[ oldMeshFaceVertexID ] << "\n\n";
                     vIds.push_back( P2p[ vertexIds[ oldMeshFaceVertexID ] ] );
                     uvs.push_back( mesh_uvs[ oldMeshFaceVertexID ] );
                     n.push_back( N[ oldMeshFaceVertexID ] );
                 }
             }
         }
+        
 #ifdef DEBUG
         cout << vIds.size() << "|" << n.size() << "|" << uvs.size() << "\n";
 #endif
@@ -478,6 +477,8 @@ int main(int argc, char **argv)
         cout << "Loading mesh " << obj << "\n\n";
         // ReaderPtr  meshReader = Reader::create( obj );
         OBJReader2  meshReader( obj );
+        cout << "\n";
+
 
         // we make sure the geometry is all triangulated here, right after
         // reading the OBJ from disk
