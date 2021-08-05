@@ -7,6 +7,7 @@
 /3dtile-viewer/node_modules
 /.idea
 *.o
+.nfs*
 mesh-splitter/*.abc
 mesh-splitter/*.mtl
 mesh-splitter/*.obj
