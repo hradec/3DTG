@@ -1,12 +1,14 @@
 
 
 DOCKER_ARGS?=
+DEBUG:=''
+
 
 PIPE_LIBS_ROOT=/atomo/pipeline/libs/linux/x86_64/pipevfx.5.0.0
 CORTEX_VERSION=10.0.0.a82
 BOOST_VERSION=1.61.0
 ALEMBIC_VERSION=1.7.1
-GCC_VERSION=$(shell grep gcc ${PIPE_LIBS_ROOT}/cortex/${CORTEX_VERSION}/.build.noBaseLib-boost.${BOOST_VERSION}.done.depend 2>/dev/null | awk -F'/' '{print $$(NF)}' | sort -V | tail -1)
+ROOT_GCC_VERSION=$(shell grep gcc ${PIPE_LIBS_ROOT}/cortex/${CORTEX_VERSION}/.build.noBaseLib-boost.${BOOST_VERSION}.done.depend 2>/dev/null | awk -F'/' '{print $$(NF)}' | sort -V | tail -1)
 ILMBASE_VERSION=$(shell grep ilmbase ${PIPE_LIBS_ROOT}/cortex/${CORTEX_VERSION}/.build.noBaseLib-boost.${BOOST_VERSION}.done.depend 2>/dev/null | awk -F'/' '{print $$(NF)}' | sort -V | tail -1)
 OPENEXR_VERSION=$(shell grep openexr ${PIPE_LIBS_ROOT}/cortex/${CORTEX_VERSION}/.build.noBaseLib-boost.${BOOST_VERSION}.done.depend 2>/dev/null | awk -F'/' '{print $$(NF)}' | sort -V | tail -1)
 TBB_VERSION=$(shell grep tbb ${PIPE_LIBS_ROOT}/cortex/${CORTEX_VERSION}/.build.noBaseLib-boost.${BOOST_VERSION}.done.depend 2>/dev/null | awk -F'/' '{print $$(NF)}' | sort -V | tail -1)
@@ -17,14 +19,17 @@ MPFR_VERSION=$(shell grep mpfr ${PIPE_LIBS_ROOT}/gcc/${GCC_VERSION}/.build.noBas
 PYTHON_VERSION=$(shell grep python ${PIPE_LIBS_ROOT}/cortex/${CORTEX_VERSION}/.build.noBaseLib-boost.${BOOST_VERSION}.done.depend 2>/dev/null | awk -F'/' '{print $$(NF)}' | sort -V | tail -1)
 PYTHON_VERSION_MAJOR=$(shell echo ${PYTHON_VERSION} | awk -F'.' '{print $$1"."$$2}')
 
-# gcc
-ROOT_CXX_ORIG	:= ${PIPE_LIBS_ROOT}/gcc/${GCC_VERSION}
+# set the correct gcc version, but only after this makefile had copied
+# it over to libs/gcc/. So the first make run will fail to compile.
 GCC_VERSION		:= ${shell ls ./libs/gcc/}
+
+# gcc
+ROOT_CXX_ORIG	:= ${PIPE_LIBS_ROOT}/gcc/${ROOT_GCC_VERSION}
 ROOT_CXX		:= ./libs/gcc/${GCC_VERSION}/
 CXX 	  		:= ${ROOT_CXX}/bin/g++
 CXXFLAGS  		:= -Wno-deprecated -pipe -DBOOST_DISABLE_ASSERTS -fpermissive
-CXXFLAGS		+= -ggdb -DDEBUG
-# CXXFLAGS		+= -DNDEBUG
+# CXXFLAGS		+= -ggdb -DDEBUG
+CXXFLAGS		+= -DNDEBUG -O3
 CXXFLAGS		+= -DAtUInt=AtUInt32 -D_GLIBCXX_USE_CXX11_ABI=0 -fPIC -I. -nostdinc -nostdinc++
 CXXFLAGS		+= -I${ROOT_CXX}/include/
 CXXFLAGS		+= -I${ROOT_CXX}/include/c++/
@@ -35,6 +40,7 @@ CXXFLAGS		+= -I${ROOT_CXX}/lib/gcc/x86_64-pc-linux-gnu/6.3.1/include/
 CXXFLAGS		+= -I${ROOT_CXX}/lib/gcc/x86_64-pc-linux-gnu/6.3.1/include/ssp/
 CXXFLAGS		+= -I${ROOT_CXX}/lib/gcc/x86_64-pc-linux-gnu/6.3.1/include-fixed/
 CXXFLAGS		+= -I./libs/headers/
+CXXFLAGS		+= -I./libs/headers/OpenEXR
 CXXFLAGS		+= -I/usr/include/
 CXXFLAGS		+= -I/usr/include/x86_64-linux-gnu/
 LDFLAGS  		+= -Wl,--enable-new-dtags,-rpath-link=./libs,-rpath=./libs -L./libs
@@ -185,6 +191,17 @@ _test: ${all_docker}
 	 	./$$each ./tests/2_spheres_test_splitting_texture_map_by_uv.obj ;\
 	done
 
+_debug: ${all_docker}
+	for each in ${BIN} ; do \
+		if [ "$$(echo $$each | grep ${DEBUG})" != "" ] ; then \
+			python3 -c "print('='*80)" ;\
+			echo "Testing $$each" ;\
+			python3 -c "print('='*80)" ;\
+		 	python3 -c "print('r\nbt')" | gdb --args ./$$each ./3dtg-objs/body-rc-D01-02.obj ;\
+		fi ;\
+	done
+
+
 
 # ======================================================================================
 # use docker to build in ubuntu 20.04
@@ -217,6 +234,15 @@ run: docker
 		-v $$(pwd):/work_dev/ \
 		-v /atomo/pipeline/libs/:/atomo/pipeline/libs/ \
 	ubuntu_dev /bin/sh -c "cd /work_dev/;bash"
+
+debug: docker
+	docker run -ti --rm \
+		-u $$(id -u ${USER}):$$(id -g ${USER}) \
+		-v /etc/passwd:/etc/passwd \
+		-v /etc/group:/etc/group \
+		-v $$(pwd):/work_dev/ \
+		-v /atomo/pipeline/libs/:/atomo/pipeline/libs/ \
+	ubuntu_dev /bin/sh -c "cd /work_dev/; make _debug DEBUG=${DEBUG}"
 
 help:
 	@echo ""
