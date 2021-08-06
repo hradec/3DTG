@@ -190,6 +190,30 @@ void OBJReader2::parseVertex(const char * begin, const char * end)
     // cout << "\r" << "parseVertex: " << m_vertices->size() << "                ";
 }
 
+void OBJReader2::parseVertexColor(const char * begin, const char * end)
+{
+	vector<float> vec;
+	srule vertex = "v" >> real_p[append(vec)] >> real_p[append(vec)] >> real_p[append(vec)] >> real_p[append(vec)] >> real_p[append(vec)] >> real_p[append(vec)];
+	parse(begin, vertex, space_p);
+
+	// build v
+	V3f v;
+	v[0] = vec[0];
+ 	v[1] = vec[1];
+ 	v[2] = vec[2];
+	V3f rgb;
+	rgb[0] = vec[3];
+ 	rgb[1] = vec[4];
+ 	rgb[2] = vec[5];
+
+    if( m_vertices->empty() ) cout << "Reading vertices with color..." << endl;
+
+	// add this vertex
+	m_vertices->push_back(v);
+
+    // cout << "\r" << "parseVertex: " << m_vertices->size() << "                ";
+}
+
 // parse a texture coordinate
 void OBJReader2::parseTextureCoordinate(const char * begin, const char * end)
 {
@@ -372,6 +396,12 @@ void OBJReader2::parseOBJ() {
 	// srule vertex_step_size  = "step" >> int_p >> int_p;
 	srule vertex_type = vertex | vertex_texture | vertex_normal;
 
+
+	// vertices with colors
+	srule vertex_with_color = ("v"  >> real_p >> real_p >> real_p >> real_p >> real_p >> real_p) [bind(&OBJReader2::parseVertexColor, this, _1, _2)];
+	srule vertex_type_color = vertex_with_color | vertex_texture | vertex_normal;
+
+
 	// elements
 	srule point = "p" >> real_p >> *(real_p);
 	srule  line = "l" >> int_p >> int_p >> *(int_p);
@@ -414,5 +444,5 @@ void OBJReader2::parseOBJ() {
 	ifstream in(fileName().c_str());
 	string str;
 	while(getline(in, str))
-		parse(str.c_str(), vertex_type | element | grouping | comment, space_p);
+		parse(str.c_str(), vertex_type_color | vertex_type | element | grouping | comment, space_p);
 }

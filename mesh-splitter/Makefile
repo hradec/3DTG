@@ -1,8 +1,8 @@
 
 
 DOCKER_ARGS?=
-DEBUG:=''
-
+DEBUG=''
+OBJ=./tests/2_spheres_test_splitting_texture_map_by_uv.obj
 
 PIPE_LIBS_ROOT=/atomo/pipeline/libs/linux/x86_64/pipevfx.5.0.0
 CORTEX_VERSION=10.0.0.a82
@@ -28,8 +28,8 @@ ROOT_CXX_ORIG	:= ${PIPE_LIBS_ROOT}/gcc/${ROOT_GCC_VERSION}
 ROOT_CXX		:= ./libs/gcc/${GCC_VERSION}/
 CXX 	  		:= ${ROOT_CXX}/bin/g++
 CXXFLAGS  		:= -Wno-deprecated -pipe -DBOOST_DISABLE_ASSERTS -fpermissive
-# CXXFLAGS		+= -ggdb -DDEBUG
-CXXFLAGS		+= -DNDEBUG -O3
+CXXFLAGS		+= -ggdb -DDEBUG
+# CXXFLAGS		+= -DNDEBUG -O3
 CXXFLAGS		+= -DAtUInt=AtUInt32 -D_GLIBCXX_USE_CXX11_ABI=0 -fPIC -I. -nostdinc -nostdinc++
 CXXFLAGS		+= -I${ROOT_CXX}/include/
 CXXFLAGS		+= -I${ROOT_CXX}/include/c++/
@@ -188,7 +188,7 @@ _test: ${all_docker}
 		python3 -c "print('='*80)" ;\
 		echo "Testing $$each" ;\
 		python3 -c "print('='*80)" ;\
-	 	./$$each ./tests/2_spheres_test_splitting_texture_map_by_uv.obj ;\
+	 	./$$each $(OBJ) ;\
 	done
 
 _debug: ${all_docker}
@@ -197,7 +197,7 @@ _debug: ${all_docker}
 			python3 -c "print('='*80)" ;\
 			echo "Testing $$each" ;\
 			python3 -c "print('='*80)" ;\
-		 	python3 -c "print('r\nbt')" | gdb --args ./$$each ./3dtg-objs/body-rc-D01-02.obj ;\
+		 	python3 -c "print('r\nbt')" | gdb --args ./$$each $(OBJ) ;\
 		fi ;\
 	done
 
@@ -224,7 +224,7 @@ test: docker
 		-v /etc/group:/etc/group \
 		-v $$(pwd):/work_dev/ \
 		-v /atomo/pipeline/libs/:/atomo/pipeline/libs/ \
-	ubuntu_dev /bin/sh -c "cd /work_dev/; make _test"
+	ubuntu_dev /bin/sh -c "cd /work_dev/; make _test DEBUG=${DEBUG} OBJ=${OBJ}"
 
 run: docker
 	docker run -ti --rm \
@@ -242,7 +242,7 @@ debug: docker
 		-v /etc/group:/etc/group \
 		-v $$(pwd):/work_dev/ \
 		-v /atomo/pipeline/libs/:/atomo/pipeline/libs/ \
-	ubuntu_dev /bin/sh -c "cd /work_dev/; make _debug DEBUG=${DEBUG}"
+	ubuntu_dev /bin/sh -c "cd /work_dev/; make _debug DEBUG=${DEBUG} OBJ=${OBJ}"
 
 help:
 	@echo ""

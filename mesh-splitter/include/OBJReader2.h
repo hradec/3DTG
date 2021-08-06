@@ -77,6 +77,7 @@ class IECORESCENE_API OBJReader2 : public IECore::Reader
 
 		// statement-level parse methods
 		void parseVertex(const char *, const char *);
+		void parseVertexColor(const char *, const char *);
 		void parseTextureCoordinate(const char *, const char *);
 		void parseNormal(const char *, const char *);
 

@@ -132,11 +132,17 @@ void splitMesh( MeshPrimitivePtr mesh, vector<MeshPrimitivePtr> &result, vector<
     // create access variables for input mesh vertex, face and uv data
     const std::vector<int> &vertexIds = mesh->vertexIds()->readable();
     const std::vector<int> &verticesPerFace = mesh->verticesPerFace()->readable();
-    const std::vector<Imath::V3f> &N  = mesh->expandedVariableData< V3fVectorData >( "N", PrimitiveVariable::FaceVarying )->readable();
-    // const vector<int> &mesh_uvs_indices = mesh->variables["uv"].indices->readable();
-    const std::vector<Imath::V2f> &mesh_uvs = mesh->expandedVariableData<V2fVectorData>( "uv", PrimitiveVariable::FaceVarying )->readable();
-    // const vector<Imath::V2f> &mesh_uvs = runTimeCast<V2fVectorData>( mesh->variables["uv"].data.get() )->readable();
-    // const std::vector<Imath::V2f> &mesh_uvs = mesh->variableData< V2fVectorData >( "uv", PrimitiveVariable::Interpolation::FaceVarying )->readable();
+
+    const std::vector<Imath::V3f> N;
+    const std::vector<Imath::V2f> mesh_uvs;
+    V2fVectorDataPtr mesh_uvs_ptr = mesh->expandedVariableData<V2fVectorData>( "uv", PrimitiveVariable::FaceVarying );
+    if( mesh_uvs_ptr ){
+        N  = mesh->expandedVariableData< V3fVectorData >( "N", PrimitiveVariable::FaceVarying )->readable();
+        // const vector<int> &mesh_uvs_indices = mesh->variables["uv"].indices->readable();
+        mesh_uvs = mesh_uvs_ptr->readable();
+        // const vector<Imath::V2f> &mesh_uvs = runTimeCast<V2fVectorData>( mesh->variables["uv"].data.get() )->readable();
+        // const std::vector<Imath::V2f> &mesh_uvs = mesh->variableData< V2fVectorData >( "uv", PrimitiveVariable::Interpolation::FaceVarying )->readable();
+    }
 
     // Splits the box into two across the major axis, if we don't specify an axis.
     Imath::Box3f halfBbox[2];
@@ -152,7 +158,7 @@ void splitMesh( MeshPrimitivePtr mesh, vector<MeshPrimitivePtr> &result, vector<
     cout << "vertex per face size:" << verticesPerFace.size() << "\n" ;
     // cout << "uv's size:" << mesh_uvs.size() << " " << mesh_uvs_indices.size() <<  "\n" ;
     cout << "face vertex id size:" << vertexIds.size() << "\n";
-    cout << "N size:" << N.size() << "\n" ;
+    // cout << "N size:" << N.size() << "\n" ;
     // cout << ">>>" << mesh_uvs_indices[10] << "\n" ;
     // cout << ">>>" << N[1] << "\n" ;
     // cout << ">>>" << mesh_uvs[10] << "\n" ;
@@ -256,13 +262,17 @@ void splitMesh( MeshPrimitivePtr mesh, vector<MeshPrimitivePtr> &result, vector<
                         V2f origUV, destUV;
                         // lets gather all data into variables for clarity!
                         origP  = P[ vertexIds[outside[out]] ];
-                        origN  = N[           outside[out]  ];
-                        origUV = mesh_uvs[    outside[out]  ];
-                        origN  = origN.normalize();
+                        if( mesh_uvs_ptr ){
+                            origN  = N[           outside[out]  ];
+                            origUV = mesh_uvs[    outside[out]  ];
+                            origN  = origN.normalize();
+                        }
                         destP  = P[ vertexIds[inside[in]] ];
-                        destN  = N[           inside[in]  ];
-                        destUV = mesh_uvs[    inside[in]  ];
-                        destN  = destN.normalize();
+                        if( mesh_uvs_ptr ){
+                            destN  = N[           inside[in]  ];
+                            destUV = mesh_uvs[    inside[in]  ];
+                            destN  = destN.normalize();
+                        }
 
                         // and this is the original edge,
                         // with direction from origP vertex to destP
@@ -291,8 +301,10 @@ void splitMesh( MeshPrimitivePtr mesh, vector<MeshPrimitivePtr> &result, vector<
                                 p_index[v3fmap(destP)] = p.size()-1;
                             }
                             new_edge.push_back(p_index[v3fmap(destP)]);
-                            new_edge_N.push_back( destN );
-                            new_edge_uv.push_back( destUV );
+                            if( mesh_uvs_ptr ){
+                                new_edge_N.push_back( destN );
+                                new_edge_uv.push_back( destUV );
+                            }
 
                             // add the intersection position found by ray
                             // tracing the edge agains the bbox.
@@ -305,9 +317,11 @@ void splitMesh( MeshPrimitivePtr mesh, vector<MeshPrimitivePtr> &result, vector<
                                 p_index[v3fmap(highHitPoint)] = p.size()-1;
                             }
                             new_edge.push_back(p_index[v3fmap(highHitPoint)]);
-                            V3f interpolatedN = linearstep( destN, origN, w).normalize();
-                            new_edge_N.push_back( interpolatedN.dot(destN) < 0 ? -interpolatedN : interpolatedN );
-                            new_edge_uv.push_back( linearstep( destUV, origUV, w) );
+                            if( mesh_uvs_ptr ){
+                                V3f interpolatedN = linearstep( destN, origN, w).normalize();
+                                new_edge_N.push_back( interpolatedN.dot(destN) < 0 ? -interpolatedN : interpolatedN );
+                                new_edge_uv.push_back( linearstep( destUV, origUV, w) );
+                            }
 
                         }
                     }
@@ -322,10 +336,12 @@ void splitMesh( MeshPrimitivePtr mesh, vector<MeshPrimitivePtr> &result, vector<
                 char _vids[3] = {0,1,3};
                 for(const char &v : _vids){
                     vIds.push_back( p_index[ v3fmap(p[ new_edge[v] ]) ] );
-                    // new interpolated Normals
-                    n.push_back( new_edge_N[v] );
-                    // new interpolated uv's
-                    uvs.push_back( new_edge_uv[v] );
+                    if( mesh_uvs_ptr ){
+                        // new interpolated Normals
+                        n.push_back( new_edge_N[v] );
+                        // new interpolated uv's
+                        uvs.push_back( new_edge_uv[v] );
+                    }
                 }
 
                 if( new_edge[0] != new_edge[2] ) {
@@ -336,10 +352,12 @@ void splitMesh( MeshPrimitivePtr mesh, vector<MeshPrimitivePtr> &result, vector<
                     char _vids[3] = {0,3,2};
                     for(const char &v : _vids){
                         vIds.push_back( p_index[ v3fmap(p[ new_edge[v] ]) ] );
-                        // new interpolated Normals
-                        n.push_back( new_edge_N[v] );
-                        // new interpolated uv's
-                        uvs.push_back( new_edge_uv[v] );
+                        if( mesh_uvs_ptr ){
+                            // new interpolated Normals
+                            n.push_back( new_edge_N[v] );
+                            // new interpolated uv's
+                            uvs.push_back( new_edge_uv[v] );
+                        }
                     }
                 }
 
@@ -351,12 +369,14 @@ void splitMesh( MeshPrimitivePtr mesh, vector<MeshPrimitivePtr> &result, vector<
                     long oldMeshFaceVertexID = faces_vindex[f]+v ;
                     // cout << oldMeshFaceVertexID <<"\n"<< mesh_uvs[ oldMeshFaceVertexID ] << "\n\n";
                     vIds.push_back( P2p[ vertexIds[ oldMeshFaceVertexID ] ] );
-                    uvs.push_back( mesh_uvs[ oldMeshFaceVertexID ] );
-                    n.push_back( N[ oldMeshFaceVertexID ] );
+                    if( mesh_uvs_ptr ){
+                        uvs.push_back( mesh_uvs[ oldMeshFaceVertexID ] );
+                        n.push_back( N[ oldMeshFaceVertexID ] );
+                    }
                 }
             }
         }
-        
+
 #ifdef DEBUG
         cout << vIds.size() << "|" << n.size() << "|" << uvs.size() << "\n";
 #endif
@@ -364,9 +384,11 @@ void splitMesh( MeshPrimitivePtr mesh, vector<MeshPrimitivePtr> &result, vector<
         MeshPrimitivePtr tmp_mesh = new MeshPrimitive( new IntVectorData(vPerFace), new IntVectorData(vIds), "linear", new V3fVectorData(p) );
         // generate new normals
         // result->variables["N"] = MeshAlgo::calculateNormals(result.get());
-        tmp_mesh->variables["N"] = PrimitiveVariable( PrimitiveVariable::FaceVarying, nData );
-        // setup new uvs
-        tmp_mesh->variables["uv"] = PrimitiveVariable( PrimitiveVariable::FaceVarying, uvData );
+        if( mesh_uvs_ptr ){
+            tmp_mesh->variables["N"] = PrimitiveVariable( PrimitiveVariable::FaceVarying, nData );
+            // setup new uvs
+            tmp_mesh->variables["uv"] = PrimitiveVariable( PrimitiveVariable::FaceVarying, uvData );
+        }
 
 #ifdef DEBUG
         cout << result.size() << "\n";
@@ -506,9 +528,9 @@ int main(int argc, char **argv)
             // finally, save out our new meshes!
             cout << "Writing new objs " << new_meshes_name[n] << "\n";
             writeAlembicCache( new_meshes[n], new_meshes_name[n]+".abc");
-            SceneInterfacePtr meshNode = root.child( new_meshes_name[n], SceneInterface::CreateIfMissing  );
 
             // save mesh into "all.abc"
+            SceneInterfacePtr meshNode = root.child( new_meshes_name[n], SceneInterface::CreateIfMissing  );
             meshNode->writeObject( new_meshes[n].get(), 0 );
         }
 
